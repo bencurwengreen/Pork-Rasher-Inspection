@@ -1,0 +1,22 @@
+# Python temporary files
+__pycache__/
+*.pyc
+
+# Jupyter temporary files
+.ipynb_checkpoints/
+
+# Python virtual environments
+.venv/
+venv/
+
+# VS Code settings
+.vscode/
+
+# Windows/macOS system files
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Trained machine learning models
+models/*.pth
+models/*.pt
