@@ -20,3 +20,8 @@ Thumbs.db
 # Trained machine learning models
 models/*.pth
 models/*.pt
+
+# Roboflow dataset images and annotations
+data/raw/train/
+data/raw/valid/
+data/raw/test/
