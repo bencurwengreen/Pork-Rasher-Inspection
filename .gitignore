@@ -25,3 +25,6 @@ models/*.pt
 data/raw/train/
 data/raw/valid/
 data/raw/test/
+
+# Generated regional feature dataset
+data/processed/region_features.csv
