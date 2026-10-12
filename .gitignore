@@ -25,3 +25,7 @@ models/*.pt
 data/raw/train/
 data/raw/valid/
 data/raw/test/
+
+# Exclude generated regional feature data
+data/processed/region_features.csv
+
