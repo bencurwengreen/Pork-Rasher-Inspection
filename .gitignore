@@ -29,5 +29,3 @@ data/raw/test/
 # Exclude generated regional feature data
 data/processed/region_features.csv
 
-# Generated regional feature dataset
-data/processed/region_features.csv
