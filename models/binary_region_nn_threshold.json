@@ -1,0 +1,7 @@
+{
+    "max_defects": 6,
+    "patch_size": 32,
+    "selection_metric": "balanced_accuracy",
+    "selection_dataset": "training",
+    "region_classification": "binary"
+}
