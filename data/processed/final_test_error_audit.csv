@@ -1,11 +1,11 @@
-image_id,filename,actual_label,Whole-image Logistic Regression incorrect,Regional Logistic Regression incorrect,Whole-image Neural Network incorrect,Regional Neural Network incorrect,Optimised Neural Network incorrect,models_incorrect
+image_id,filename,actual_label,Whole-image Logistic Regression incorrect,Regional Logistic Regression incorrect,Whole-image Neural Network incorrect,Regional Neural Network incorrect,Identity NN (PASS threshold 0.45) incorrect,models_incorrect
 0,frame_with_red_7744_jpg.rf.04e89867c456a8d73e4872337c46deb1.jpg,FAIL,False,False,False,False,False,0
-1,frame_with_red_258_jpg.rf.1c18d8fd20e681b1fcaba54e790497ba.jpg,PASS,True,True,True,False,True,4
+1,frame_with_red_258_jpg.rf.1c18d8fd20e681b1fcaba54e790497ba.jpg,PASS,True,True,True,False,False,3
 2,frame_with_red_72_jpg.rf.8d5d4b6332707b85eb5b278d5c584b2a.jpg,FAIL,False,False,False,False,True,1
 3,frame_with_red_8337_jpg.rf.62df5e8671f3272c3a81cd68051bed85.jpg,FAIL,False,False,False,False,False,0
 4,frame_with_red_931_jpg.rf.86f53ca410df31a9454bf379946a8d9c.jpg,FAIL,True,True,True,True,True,5
 5,frame_with_red_1405_jpg.rf.061b0a529d86947d72614947d16b3105.jpg,FAIL,False,False,False,False,True,1
-6,frame_with_red_378_jpg.rf.2dd94f946948c9b3fd658453b1f66659.jpg,PASS,True,False,True,False,False,2
+6,frame_with_red_378_jpg.rf.2dd94f946948c9b3fd658453b1f66659.jpg,PASS,True,False,True,False,True,3
 7,frame_with_red_7506_jpg.rf.c7c42fbdaa7e02d1a127e7257a932047.jpg,FAIL,False,False,False,True,True,2
 8,frame_with_red_908_jpg.rf.049ec4bdc03dbb17fb37a5b08cb582fd.jpg,FAIL,True,True,True,True,True,5
 9,frame_with_red_7581_jpg.rf.643d807e929eb3fb4229da9ccb82da2c.jpg,FAIL,False,False,False,False,False,0
@@ -41,14 +41,14 @@ image_id,filename,actual_label,Whole-image Logistic Regression incorrect,Regiona
 39,frame_with_red_7531_jpg.rf.c468cc456d436b955f3d23777bb9d7f8.jpg,FAIL,False,False,False,False,False,0
 40,frame_with_red_8625_jpg.rf.cf26cbd0770a03ee0c4ab4f6963dd4df.jpg,FAIL,False,False,False,False,False,0
 41,frame_with_red_3899_jpg.rf.517bf2fa01309b7bebc4005f13eeb87a.jpg,FAIL,True,False,True,False,True,3
-42,frame_with_red_1695_jpg.rf.0fcc67310f01b5c3361403020eaa6afa.jpg,FAIL,False,False,False,True,True,2
-43,frame_with_red_1298_jpg.rf.bbe700517e6a8b837196fec1a3c425c7.jpg,FAIL,False,True,False,True,True,3
+42,frame_with_red_1695_jpg.rf.0fcc67310f01b5c3361403020eaa6afa.jpg,FAIL,False,False,False,True,False,1
+43,frame_with_red_1298_jpg.rf.bbe700517e6a8b837196fec1a3c425c7.jpg,FAIL,False,True,False,True,False,2
 44,frame_with_red_4088_jpg.rf.b5f45a560eeca8215eaa6d0d8560f23d.jpg,PASS,True,True,True,False,False,3
 45,frame_with_red_437_jpg.rf.1d88cff92b7d5f81c694265df9667631.jpg,FAIL,True,True,True,True,True,5
 46,frame_with_red_889_jpg.rf.20efea8fc63b20aac8f23efa64587dfc.jpg,FAIL,False,False,False,False,True,1
 47,frame_with_red_963_jpg.rf.dede332c5fe70a1727466ca431dc897e.jpg,FAIL,False,False,False,True,False,1
 48,frame_with_red_7617_jpg.rf.9c6fe7f0294ef5016d532ac1ac8c668f.jpg,FAIL,False,False,False,False,False,0
-49,frame_with_red_102_jpg.rf.10163b7e614de52a86d75cf0c2def998.jpg,FAIL,False,False,False,False,True,1
+49,frame_with_red_102_jpg.rf.10163b7e614de52a86d75cf0c2def998.jpg,FAIL,False,False,False,False,False,0
 50,frame_with_red_4523_jpg.rf.e10c146cc2a21372e966ce0d4bacad26.jpg,FAIL,False,False,False,False,False,0
 51,frame_with_red_5849_jpg.rf.4cdf1fef179bfc4b9e2c0dcf16ddef4a.jpg,FAIL,False,False,False,False,False,0
 52,frame_with_red_8208_jpg.rf.4656d0a5bebf6c4c06953f58cdf9f518.jpg,FAIL,False,False,False,False,False,0
