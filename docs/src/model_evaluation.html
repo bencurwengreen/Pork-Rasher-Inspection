@@ -58,62 +58,86 @@
 
                         <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">"""Model prediction aggregation and image-level evaluation helpers."""</span>
 </span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a>
-</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="n">__docformat__</span> <span class="o">=</span> <span class="s2">"markdown"</span>
 </span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
-</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
-</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a>
-</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a>
-</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a><span class="k">def</span><span class="w"> </span><span class="nf">regional_predictions_to_image_labels</span><span class="p">(</span><span class="n">region_model</span><span class="p">,</span> <span class="n">max_defects</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">X_region_test</span><span class="p">,</span> <span class="n">region_features_df</span><span class="p">,</span> <span class="n">predictions_df</span><span class="p">):</span>
-</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="w">    </span><span class="sd">"""Predict patches and aggregate defect counts in the requested image order.</span>
-</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>
-</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="sd">    Parameters</span>
-</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a><span class="sd">    ----------</span>
-</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">    region_model : estimator</span>
-</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="sd">        Fitted estimator exposing predict with binary patch labels.</span>
-</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="sd">    max_defects : int</span>
-</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="sd">        Images fail when the predicted defect count exceeds this threshold.</span>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">    model_name : str</span>
-</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="sd">        Model description used in validation messages.</span>
-</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="sd">    X_region_test : array-like</span>
-</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="sd">        Patch features in the same row order as region_features_df.</span>
-</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="sd">    region_features_df : pandas.DataFrame</span>
-</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="sd">        Patch records containing an image_id column.</span>
-</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="sd">    predictions_df : pandas.DataFrame</span>
-</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a><span class="sd">        Image records whose image_id column defines the output order.</span>
-</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a>
-</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">    Returns</span>
-</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="sd">    -------</span>
-</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">    tuple</span>
-</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="sd">        PASS/FAIL label array, defect count array and elapsed seconds.</span>
-</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="sd">    """</span>
-</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a>
-</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a>    <span class="c1"># Obtain one prediction per 32×32 patch (0 = normal, 1 = defective).</span>
-</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a>    <span class="n">patch_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">region_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_region_test</span><span class="p">))</span>
-</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_predictions</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">region_features_df</span><span class="p">)</span>
-</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a>    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">patch_predictions</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="p">(</span>
-</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a>        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1"> produced unexpected regional class labels.'</span>
-</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a>    <span class="p">)</span>
-</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a>
-</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>    <span class="c1"># Attach the predicted patch classes to their originating image IDs.</span>
-</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a>    <span class="n">patch_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
-</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a>        <span class="s1">'image_id'</span><span class="p">:</span> <span class="n">region_features_df</span><span class="p">[</span><span class="s1">'image_id'</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span>
-</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a>        <span class="s1">'predicted_defect'</span><span class="p">:</span> <span class="n">patch_predictions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span>
-</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a>    <span class="p">})</span>
-</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a>
-</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a>    <span class="c1"># Count only predicted defects, never actual COCO defects.</span>
-</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a>    <span class="n">image_counts</span> <span class="o">=</span> <span class="n">patch_results</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'image_id'</span><span class="p">)[</span><span class="s1">'predicted_defect'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a><span class="k">def</span><span class="w"> </span><span class="nf">regional_predictions_to_image_labels</span><span class="p">(</span><span class="n">region_model</span><span class="p">,</span> <span class="n">max_defects</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">X_region_test</span><span class="p">,</span> <span class="n">region_features_df</span><span class="p">,</span> <span class="n">predictions_df</span><span class="p">):</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a><span class="w">    </span><span class="sd">"""Predict patch classes and aggregate counts in the requested image order.</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a><span class="sd">    ## Parameters</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a><span class="sd">    - **region_model** (`estimator`):</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a><span class="sd">        Fitted estimator whose ``predict`` method returns one binary class</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="sd">        per patch: 0 for normal and 1 for defective.</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">18</span></a><span class="sd">    - **max_defects** (`int`):</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos">19</span></a><span class="sd">        Maximum allowable number of predicted defective patches. An image</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos">20</span></a><span class="sd">        is FAIL only when its count is strictly greater than this value;</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos">21</span></a><span class="sd">        equality remains PASS. Callers should supply a non-negative integer.</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos">22</span></a><span class="sd">    - **model_name** (`str`):</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos">23</span></a><span class="sd">        Model description included in assertion messages.</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos">24</span></a><span class="sd">    - **X_region_test** (`array-like of shape (n_patches, n_features)`):</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos">25</span></a><span class="sd">        Patch predictors in the same row order as ``region_features_df``.</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos">26</span></a><span class="sd">    - **region_features_df** (`pandas.DataFrame`):</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos">27</span></a><span class="sd">        One row per patch, including an ``image_id`` column identifying</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos">28</span></a><span class="sd">        the source image. Row order must match ``X_region_test``.</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos">29</span></a><span class="sd">    - **predictions_df** (`pandas.DataFrame`):</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos">30</span></a><span class="sd">        Image records containing an ``image_id`` column. This column</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos">31</span></a><span class="sd">        determines the order of both returned arrays.</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos">32</span></a>
+</span><span id="L-33"><a href="#L-33"><span class="linenos">33</span></a><span class="sd">    ## Returns</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos">34</span></a><span class="sd">    - **predicted_labels** (`numpy.ndarray of str`):</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos">35</span></a><span class="sd">        One PASS or FAIL label per row of ``predictions_df``.</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos">36</span></a><span class="sd">    - **counts** (`numpy.ndarray of int`):</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos">37</span></a><span class="sd">        Predicted defective-patch counts in the same image order.</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos">38</span></a><span class="sd">    - **elapsed** (`float`):</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos">39</span></a><span class="sd">        Elapsed prediction and aggregation time in seconds. Excludes</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos">40</span></a><span class="sd">        image loading and feature extraction performed before this call.</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos">41</span></a>
+</span><span id="L-42"><a href="#L-42"><span class="linenos">42</span></a><span class="sd">    ## Raises</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos">43</span></a><span class="sd">    - **AssertionError**:</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos">44</span></a><span class="sd">        If prediction and patch-row counts differ, predicted classes are</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos">45</span></a><span class="sd">        not binary, or a requested image has no aggregated patch count.</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos">46</span></a><span class="sd">        These checks are inactive when Python assertions are disabled.</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos">47</span></a><span class="sd">    - **KeyError**:</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos">48</span></a><span class="sd">        If either dataframe lacks the required ``image_id`` column.</span>
 </span><span id="L-49"><a href="#L-49"><span class="linenos">49</span></a>
-</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a>    <span class="c1"># Match the test-image order using image IDs rather than sorting filenames.</span>
-</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a>    <span class="n">aligned_counts</span> <span class="o">=</span> <span class="n">image_counts</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">predictions_df</span><span class="p">[</span><span class="s1">'image_id'</span><span class="p">])</span>
-</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a>    <span class="k">assert</span> <span class="n">aligned_counts</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="sa">f</span><span class="s1">'Missing patch counts for </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1">.'</span>
-</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a>    <span class="n">counts</span> <span class="o">=</span> <span class="n">aligned_counts</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a>
-</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a>    <span class="c1"># An image fails only if predicted defective regions STRICTLY EXCEED the threshold.</span>
-</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>    <span class="n">predicted_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">counts</span> <span class="o">&gt;</span> <span class="n">max_defects</span><span class="p">,</span> <span class="s1">'FAIL'</span><span class="p">,</span> <span class="s1">'PASS'</span><span class="p">)</span>
-</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>    <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
-</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>    <span class="k">return</span> <span class="n">predicted_labels</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">elapsed</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos">50</span></a><span class="sd">    ## Notes</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos">51</span></a><span class="sd">    Counts use predicted patch classes, never ground-truth defect labels.</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos">52</span></a><span class="sd">    Estimator errors propagate to the caller. Inputs must contain one scalar</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos">53</span></a><span class="sd">    prediction per patch; patch-count thresholds depend on patch size and</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos">54</span></a><span class="sd">    image resolution.</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos">55</span></a><span class="sd">    """</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos">56</span></a>    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos">57</span></a>
+</span><span id="L-58"><a href="#L-58"><span class="linenos">58</span></a>    <span class="c1"># Obtain one prediction per 32×32 patch (0 = normal, 1 = defective).</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos">59</span></a>    <span class="n">patch_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">region_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_region_test</span><span class="p">))</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos">60</span></a>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_predictions</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">region_features_df</span><span class="p">)</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos">61</span></a>    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">patch_predictions</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="p">(</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos">62</span></a>        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1"> produced unexpected regional class labels.'</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos">63</span></a>    <span class="p">)</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos">64</span></a>
+</span><span id="L-65"><a href="#L-65"><span class="linenos">65</span></a>    <span class="c1"># Attach the predicted patch classes to their originating image IDs.</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos">66</span></a>    <span class="n">patch_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos">67</span></a>        <span class="s1">'image_id'</span><span class="p">:</span> <span class="n">region_features_df</span><span class="p">[</span><span class="s1">'image_id'</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos">68</span></a>        <span class="s1">'predicted_defect'</span><span class="p">:</span> <span class="n">patch_predictions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos">69</span></a>    <span class="p">})</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos">70</span></a>
+</span><span id="L-71"><a href="#L-71"><span class="linenos">71</span></a>    <span class="c1"># Count only predicted defects, never actual COCO defects.</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos">72</span></a>    <span class="n">image_counts</span> <span class="o">=</span> <span class="n">patch_results</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'image_id'</span><span class="p">)[</span><span class="s1">'predicted_defect'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos">73</span></a>
+</span><span id="L-74"><a href="#L-74"><span class="linenos">74</span></a>    <span class="c1"># Match the test-image order using image IDs rather than sorting filenames.</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos">75</span></a>    <span class="n">aligned_counts</span> <span class="o">=</span> <span class="n">image_counts</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">predictions_df</span><span class="p">[</span><span class="s1">'image_id'</span><span class="p">])</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos">76</span></a>    <span class="k">assert</span> <span class="n">aligned_counts</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="sa">f</span><span class="s1">'Missing patch counts for </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1">.'</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos">77</span></a>    <span class="n">counts</span> <span class="o">=</span> <span class="n">aligned_counts</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos">78</span></a>
+</span><span id="L-79"><a href="#L-79"><span class="linenos">79</span></a>    <span class="c1"># An image fails only if predicted defective regions STRICTLY EXCEED the threshold.</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos">80</span></a>    <span class="n">predicted_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">counts</span> <span class="o">&gt;</span> <span class="n">max_defects</span><span class="p">,</span> <span class="s1">'FAIL'</span><span class="p">,</span> <span class="s1">'PASS'</span><span class="p">)</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos">81</span></a>    <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos">82</span></a>    <span class="k">return</span> <span class="n">predicted_labels</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">elapsed</span>
 </span></pre></div>
 
 
@@ -129,80 +153,134 @@
 
     </div>
     <a class="headerlink" href="#regional_predictions_to_image_labels"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="regional_predictions_to_image_labels-10"><a href="#regional_predictions_to_image_labels-10"><span class="linenos">10</span></a><span class="k">def</span><span class="w"> </span><span class="nf">regional_predictions_to_image_labels</span><span class="p">(</span><span class="n">region_model</span><span class="p">,</span> <span class="n">max_defects</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">X_region_test</span><span class="p">,</span> <span class="n">region_features_df</span><span class="p">,</span> <span class="n">predictions_df</span><span class="p">):</span>
-</span><span id="regional_predictions_to_image_labels-11"><a href="#regional_predictions_to_image_labels-11"><span class="linenos">11</span></a><span class="w">    </span><span class="sd">"""Predict patches and aggregate defect counts in the requested image order.</span>
-</span><span id="regional_predictions_to_image_labels-12"><a href="#regional_predictions_to_image_labels-12"><span class="linenos">12</span></a>
-</span><span id="regional_predictions_to_image_labels-13"><a href="#regional_predictions_to_image_labels-13"><span class="linenos">13</span></a><span class="sd">    Parameters</span>
-</span><span id="regional_predictions_to_image_labels-14"><a href="#regional_predictions_to_image_labels-14"><span class="linenos">14</span></a><span class="sd">    ----------</span>
-</span><span id="regional_predictions_to_image_labels-15"><a href="#regional_predictions_to_image_labels-15"><span class="linenos">15</span></a><span class="sd">    region_model : estimator</span>
-</span><span id="regional_predictions_to_image_labels-16"><a href="#regional_predictions_to_image_labels-16"><span class="linenos">16</span></a><span class="sd">        Fitted estimator exposing predict with binary patch labels.</span>
-</span><span id="regional_predictions_to_image_labels-17"><a href="#regional_predictions_to_image_labels-17"><span class="linenos">17</span></a><span class="sd">    max_defects : int</span>
-</span><span id="regional_predictions_to_image_labels-18"><a href="#regional_predictions_to_image_labels-18"><span class="linenos">18</span></a><span class="sd">        Images fail when the predicted defect count exceeds this threshold.</span>
-</span><span id="regional_predictions_to_image_labels-19"><a href="#regional_predictions_to_image_labels-19"><span class="linenos">19</span></a><span class="sd">    model_name : str</span>
-</span><span id="regional_predictions_to_image_labels-20"><a href="#regional_predictions_to_image_labels-20"><span class="linenos">20</span></a><span class="sd">        Model description used in validation messages.</span>
-</span><span id="regional_predictions_to_image_labels-21"><a href="#regional_predictions_to_image_labels-21"><span class="linenos">21</span></a><span class="sd">    X_region_test : array-like</span>
-</span><span id="regional_predictions_to_image_labels-22"><a href="#regional_predictions_to_image_labels-22"><span class="linenos">22</span></a><span class="sd">        Patch features in the same row order as region_features_df.</span>
-</span><span id="regional_predictions_to_image_labels-23"><a href="#regional_predictions_to_image_labels-23"><span class="linenos">23</span></a><span class="sd">    region_features_df : pandas.DataFrame</span>
-</span><span id="regional_predictions_to_image_labels-24"><a href="#regional_predictions_to_image_labels-24"><span class="linenos">24</span></a><span class="sd">        Patch records containing an image_id column.</span>
-</span><span id="regional_predictions_to_image_labels-25"><a href="#regional_predictions_to_image_labels-25"><span class="linenos">25</span></a><span class="sd">    predictions_df : pandas.DataFrame</span>
-</span><span id="regional_predictions_to_image_labels-26"><a href="#regional_predictions_to_image_labels-26"><span class="linenos">26</span></a><span class="sd">        Image records whose image_id column defines the output order.</span>
-</span><span id="regional_predictions_to_image_labels-27"><a href="#regional_predictions_to_image_labels-27"><span class="linenos">27</span></a>
-</span><span id="regional_predictions_to_image_labels-28"><a href="#regional_predictions_to_image_labels-28"><span class="linenos">28</span></a><span class="sd">    Returns</span>
-</span><span id="regional_predictions_to_image_labels-29"><a href="#regional_predictions_to_image_labels-29"><span class="linenos">29</span></a><span class="sd">    -------</span>
-</span><span id="regional_predictions_to_image_labels-30"><a href="#regional_predictions_to_image_labels-30"><span class="linenos">30</span></a><span class="sd">    tuple</span>
-</span><span id="regional_predictions_to_image_labels-31"><a href="#regional_predictions_to_image_labels-31"><span class="linenos">31</span></a><span class="sd">        PASS/FAIL label array, defect count array and elapsed seconds.</span>
-</span><span id="regional_predictions_to_image_labels-32"><a href="#regional_predictions_to_image_labels-32"><span class="linenos">32</span></a><span class="sd">    """</span>
-</span><span id="regional_predictions_to_image_labels-33"><a href="#regional_predictions_to_image_labels-33"><span class="linenos">33</span></a>    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
-</span><span id="regional_predictions_to_image_labels-34"><a href="#regional_predictions_to_image_labels-34"><span class="linenos">34</span></a>
-</span><span id="regional_predictions_to_image_labels-35"><a href="#regional_predictions_to_image_labels-35"><span class="linenos">35</span></a>    <span class="c1"># Obtain one prediction per 32×32 patch (0 = normal, 1 = defective).</span>
-</span><span id="regional_predictions_to_image_labels-36"><a href="#regional_predictions_to_image_labels-36"><span class="linenos">36</span></a>    <span class="n">patch_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">region_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_region_test</span><span class="p">))</span>
-</span><span id="regional_predictions_to_image_labels-37"><a href="#regional_predictions_to_image_labels-37"><span class="linenos">37</span></a>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_predictions</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">region_features_df</span><span class="p">)</span>
-</span><span id="regional_predictions_to_image_labels-38"><a href="#regional_predictions_to_image_labels-38"><span class="linenos">38</span></a>    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">patch_predictions</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="p">(</span>
-</span><span id="regional_predictions_to_image_labels-39"><a href="#regional_predictions_to_image_labels-39"><span class="linenos">39</span></a>        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1"> produced unexpected regional class labels.'</span>
-</span><span id="regional_predictions_to_image_labels-40"><a href="#regional_predictions_to_image_labels-40"><span class="linenos">40</span></a>    <span class="p">)</span>
-</span><span id="regional_predictions_to_image_labels-41"><a href="#regional_predictions_to_image_labels-41"><span class="linenos">41</span></a>
-</span><span id="regional_predictions_to_image_labels-42"><a href="#regional_predictions_to_image_labels-42"><span class="linenos">42</span></a>    <span class="c1"># Attach the predicted patch classes to their originating image IDs.</span>
-</span><span id="regional_predictions_to_image_labels-43"><a href="#regional_predictions_to_image_labels-43"><span class="linenos">43</span></a>    <span class="n">patch_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
-</span><span id="regional_predictions_to_image_labels-44"><a href="#regional_predictions_to_image_labels-44"><span class="linenos">44</span></a>        <span class="s1">'image_id'</span><span class="p">:</span> <span class="n">region_features_df</span><span class="p">[</span><span class="s1">'image_id'</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span>
-</span><span id="regional_predictions_to_image_labels-45"><a href="#regional_predictions_to_image_labels-45"><span class="linenos">45</span></a>        <span class="s1">'predicted_defect'</span><span class="p">:</span> <span class="n">patch_predictions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span>
-</span><span id="regional_predictions_to_image_labels-46"><a href="#regional_predictions_to_image_labels-46"><span class="linenos">46</span></a>    <span class="p">})</span>
-</span><span id="regional_predictions_to_image_labels-47"><a href="#regional_predictions_to_image_labels-47"><span class="linenos">47</span></a>
-</span><span id="regional_predictions_to_image_labels-48"><a href="#regional_predictions_to_image_labels-48"><span class="linenos">48</span></a>    <span class="c1"># Count only predicted defects, never actual COCO defects.</span>
-</span><span id="regional_predictions_to_image_labels-49"><a href="#regional_predictions_to_image_labels-49"><span class="linenos">49</span></a>    <span class="n">image_counts</span> <span class="o">=</span> <span class="n">patch_results</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'image_id'</span><span class="p">)[</span><span class="s1">'predicted_defect'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="regional_predictions_to_image_labels-12"><a href="#regional_predictions_to_image_labels-12"><span class="linenos">12</span></a><span class="k">def</span><span class="w"> </span><span class="nf">regional_predictions_to_image_labels</span><span class="p">(</span><span class="n">region_model</span><span class="p">,</span> <span class="n">max_defects</span><span class="p">,</span> <span class="n">model_name</span><span class="p">,</span> <span class="n">X_region_test</span><span class="p">,</span> <span class="n">region_features_df</span><span class="p">,</span> <span class="n">predictions_df</span><span class="p">):</span>
+</span><span id="regional_predictions_to_image_labels-13"><a href="#regional_predictions_to_image_labels-13"><span class="linenos">13</span></a><span class="w">    </span><span class="sd">"""Predict patch classes and aggregate counts in the requested image order.</span>
+</span><span id="regional_predictions_to_image_labels-14"><a href="#regional_predictions_to_image_labels-14"><span class="linenos">14</span></a>
+</span><span id="regional_predictions_to_image_labels-15"><a href="#regional_predictions_to_image_labels-15"><span class="linenos">15</span></a><span class="sd">    ## Parameters</span>
+</span><span id="regional_predictions_to_image_labels-16"><a href="#regional_predictions_to_image_labels-16"><span class="linenos">16</span></a><span class="sd">    - **region_model** (`estimator`):</span>
+</span><span id="regional_predictions_to_image_labels-17"><a href="#regional_predictions_to_image_labels-17"><span class="linenos">17</span></a><span class="sd">        Fitted estimator whose ``predict`` method returns one binary class</span>
+</span><span id="regional_predictions_to_image_labels-18"><a href="#regional_predictions_to_image_labels-18"><span class="linenos">18</span></a><span class="sd">        per patch: 0 for normal and 1 for defective.</span>
+</span><span id="regional_predictions_to_image_labels-19"><a href="#regional_predictions_to_image_labels-19"><span class="linenos">19</span></a><span class="sd">    - **max_defects** (`int`):</span>
+</span><span id="regional_predictions_to_image_labels-20"><a href="#regional_predictions_to_image_labels-20"><span class="linenos">20</span></a><span class="sd">        Maximum allowable number of predicted defective patches. An image</span>
+</span><span id="regional_predictions_to_image_labels-21"><a href="#regional_predictions_to_image_labels-21"><span class="linenos">21</span></a><span class="sd">        is FAIL only when its count is strictly greater than this value;</span>
+</span><span id="regional_predictions_to_image_labels-22"><a href="#regional_predictions_to_image_labels-22"><span class="linenos">22</span></a><span class="sd">        equality remains PASS. Callers should supply a non-negative integer.</span>
+</span><span id="regional_predictions_to_image_labels-23"><a href="#regional_predictions_to_image_labels-23"><span class="linenos">23</span></a><span class="sd">    - **model_name** (`str`):</span>
+</span><span id="regional_predictions_to_image_labels-24"><a href="#regional_predictions_to_image_labels-24"><span class="linenos">24</span></a><span class="sd">        Model description included in assertion messages.</span>
+</span><span id="regional_predictions_to_image_labels-25"><a href="#regional_predictions_to_image_labels-25"><span class="linenos">25</span></a><span class="sd">    - **X_region_test** (`array-like of shape (n_patches, n_features)`):</span>
+</span><span id="regional_predictions_to_image_labels-26"><a href="#regional_predictions_to_image_labels-26"><span class="linenos">26</span></a><span class="sd">        Patch predictors in the same row order as ``region_features_df``.</span>
+</span><span id="regional_predictions_to_image_labels-27"><a href="#regional_predictions_to_image_labels-27"><span class="linenos">27</span></a><span class="sd">    - **region_features_df** (`pandas.DataFrame`):</span>
+</span><span id="regional_predictions_to_image_labels-28"><a href="#regional_predictions_to_image_labels-28"><span class="linenos">28</span></a><span class="sd">        One row per patch, including an ``image_id`` column identifying</span>
+</span><span id="regional_predictions_to_image_labels-29"><a href="#regional_predictions_to_image_labels-29"><span class="linenos">29</span></a><span class="sd">        the source image. Row order must match ``X_region_test``.</span>
+</span><span id="regional_predictions_to_image_labels-30"><a href="#regional_predictions_to_image_labels-30"><span class="linenos">30</span></a><span class="sd">    - **predictions_df** (`pandas.DataFrame`):</span>
+</span><span id="regional_predictions_to_image_labels-31"><a href="#regional_predictions_to_image_labels-31"><span class="linenos">31</span></a><span class="sd">        Image records containing an ``image_id`` column. This column</span>
+</span><span id="regional_predictions_to_image_labels-32"><a href="#regional_predictions_to_image_labels-32"><span class="linenos">32</span></a><span class="sd">        determines the order of both returned arrays.</span>
+</span><span id="regional_predictions_to_image_labels-33"><a href="#regional_predictions_to_image_labels-33"><span class="linenos">33</span></a>
+</span><span id="regional_predictions_to_image_labels-34"><a href="#regional_predictions_to_image_labels-34"><span class="linenos">34</span></a><span class="sd">    ## Returns</span>
+</span><span id="regional_predictions_to_image_labels-35"><a href="#regional_predictions_to_image_labels-35"><span class="linenos">35</span></a><span class="sd">    - **predicted_labels** (`numpy.ndarray of str`):</span>
+</span><span id="regional_predictions_to_image_labels-36"><a href="#regional_predictions_to_image_labels-36"><span class="linenos">36</span></a><span class="sd">        One PASS or FAIL label per row of ``predictions_df``.</span>
+</span><span id="regional_predictions_to_image_labels-37"><a href="#regional_predictions_to_image_labels-37"><span class="linenos">37</span></a><span class="sd">    - **counts** (`numpy.ndarray of int`):</span>
+</span><span id="regional_predictions_to_image_labels-38"><a href="#regional_predictions_to_image_labels-38"><span class="linenos">38</span></a><span class="sd">        Predicted defective-patch counts in the same image order.</span>
+</span><span id="regional_predictions_to_image_labels-39"><a href="#regional_predictions_to_image_labels-39"><span class="linenos">39</span></a><span class="sd">    - **elapsed** (`float`):</span>
+</span><span id="regional_predictions_to_image_labels-40"><a href="#regional_predictions_to_image_labels-40"><span class="linenos">40</span></a><span class="sd">        Elapsed prediction and aggregation time in seconds. Excludes</span>
+</span><span id="regional_predictions_to_image_labels-41"><a href="#regional_predictions_to_image_labels-41"><span class="linenos">41</span></a><span class="sd">        image loading and feature extraction performed before this call.</span>
+</span><span id="regional_predictions_to_image_labels-42"><a href="#regional_predictions_to_image_labels-42"><span class="linenos">42</span></a>
+</span><span id="regional_predictions_to_image_labels-43"><a href="#regional_predictions_to_image_labels-43"><span class="linenos">43</span></a><span class="sd">    ## Raises</span>
+</span><span id="regional_predictions_to_image_labels-44"><a href="#regional_predictions_to_image_labels-44"><span class="linenos">44</span></a><span class="sd">    - **AssertionError**:</span>
+</span><span id="regional_predictions_to_image_labels-45"><a href="#regional_predictions_to_image_labels-45"><span class="linenos">45</span></a><span class="sd">        If prediction and patch-row counts differ, predicted classes are</span>
+</span><span id="regional_predictions_to_image_labels-46"><a href="#regional_predictions_to_image_labels-46"><span class="linenos">46</span></a><span class="sd">        not binary, or a requested image has no aggregated patch count.</span>
+</span><span id="regional_predictions_to_image_labels-47"><a href="#regional_predictions_to_image_labels-47"><span class="linenos">47</span></a><span class="sd">        These checks are inactive when Python assertions are disabled.</span>
+</span><span id="regional_predictions_to_image_labels-48"><a href="#regional_predictions_to_image_labels-48"><span class="linenos">48</span></a><span class="sd">    - **KeyError**:</span>
+</span><span id="regional_predictions_to_image_labels-49"><a href="#regional_predictions_to_image_labels-49"><span class="linenos">49</span></a><span class="sd">        If either dataframe lacks the required ``image_id`` column.</span>
 </span><span id="regional_predictions_to_image_labels-50"><a href="#regional_predictions_to_image_labels-50"><span class="linenos">50</span></a>
-</span><span id="regional_predictions_to_image_labels-51"><a href="#regional_predictions_to_image_labels-51"><span class="linenos">51</span></a>    <span class="c1"># Match the test-image order using image IDs rather than sorting filenames.</span>
-</span><span id="regional_predictions_to_image_labels-52"><a href="#regional_predictions_to_image_labels-52"><span class="linenos">52</span></a>    <span class="n">aligned_counts</span> <span class="o">=</span> <span class="n">image_counts</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">predictions_df</span><span class="p">[</span><span class="s1">'image_id'</span><span class="p">])</span>
-</span><span id="regional_predictions_to_image_labels-53"><a href="#regional_predictions_to_image_labels-53"><span class="linenos">53</span></a>    <span class="k">assert</span> <span class="n">aligned_counts</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="sa">f</span><span class="s1">'Missing patch counts for </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1">.'</span>
-</span><span id="regional_predictions_to_image_labels-54"><a href="#regional_predictions_to_image_labels-54"><span class="linenos">54</span></a>    <span class="n">counts</span> <span class="o">=</span> <span class="n">aligned_counts</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-</span><span id="regional_predictions_to_image_labels-55"><a href="#regional_predictions_to_image_labels-55"><span class="linenos">55</span></a>
-</span><span id="regional_predictions_to_image_labels-56"><a href="#regional_predictions_to_image_labels-56"><span class="linenos">56</span></a>    <span class="c1"># An image fails only if predicted defective regions STRICTLY EXCEED the threshold.</span>
-</span><span id="regional_predictions_to_image_labels-57"><a href="#regional_predictions_to_image_labels-57"><span class="linenos">57</span></a>    <span class="n">predicted_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">counts</span> <span class="o">&gt;</span> <span class="n">max_defects</span><span class="p">,</span> <span class="s1">'FAIL'</span><span class="p">,</span> <span class="s1">'PASS'</span><span class="p">)</span>
-</span><span id="regional_predictions_to_image_labels-58"><a href="#regional_predictions_to_image_labels-58"><span class="linenos">58</span></a>    <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
-</span><span id="regional_predictions_to_image_labels-59"><a href="#regional_predictions_to_image_labels-59"><span class="linenos">59</span></a>    <span class="k">return</span> <span class="n">predicted_labels</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">elapsed</span>
+</span><span id="regional_predictions_to_image_labels-51"><a href="#regional_predictions_to_image_labels-51"><span class="linenos">51</span></a><span class="sd">    ## Notes</span>
+</span><span id="regional_predictions_to_image_labels-52"><a href="#regional_predictions_to_image_labels-52"><span class="linenos">52</span></a><span class="sd">    Counts use predicted patch classes, never ground-truth defect labels.</span>
+</span><span id="regional_predictions_to_image_labels-53"><a href="#regional_predictions_to_image_labels-53"><span class="linenos">53</span></a><span class="sd">    Estimator errors propagate to the caller. Inputs must contain one scalar</span>
+</span><span id="regional_predictions_to_image_labels-54"><a href="#regional_predictions_to_image_labels-54"><span class="linenos">54</span></a><span class="sd">    prediction per patch; patch-count thresholds depend on patch size and</span>
+</span><span id="regional_predictions_to_image_labels-55"><a href="#regional_predictions_to_image_labels-55"><span class="linenos">55</span></a><span class="sd">    image resolution.</span>
+</span><span id="regional_predictions_to_image_labels-56"><a href="#regional_predictions_to_image_labels-56"><span class="linenos">56</span></a><span class="sd">    """</span>
+</span><span id="regional_predictions_to_image_labels-57"><a href="#regional_predictions_to_image_labels-57"><span class="linenos">57</span></a>    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+</span><span id="regional_predictions_to_image_labels-58"><a href="#regional_predictions_to_image_labels-58"><span class="linenos">58</span></a>
+</span><span id="regional_predictions_to_image_labels-59"><a href="#regional_predictions_to_image_labels-59"><span class="linenos">59</span></a>    <span class="c1"># Obtain one prediction per 32×32 patch (0 = normal, 1 = defective).</span>
+</span><span id="regional_predictions_to_image_labels-60"><a href="#regional_predictions_to_image_labels-60"><span class="linenos">60</span></a>    <span class="n">patch_predictions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">region_model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_region_test</span><span class="p">))</span>
+</span><span id="regional_predictions_to_image_labels-61"><a href="#regional_predictions_to_image_labels-61"><span class="linenos">61</span></a>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">patch_predictions</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">region_features_df</span><span class="p">)</span>
+</span><span id="regional_predictions_to_image_labels-62"><a href="#regional_predictions_to_image_labels-62"><span class="linenos">62</span></a>    <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">patch_predictions</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="p">(</span>
+</span><span id="regional_predictions_to_image_labels-63"><a href="#regional_predictions_to_image_labels-63"><span class="linenos">63</span></a>        <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1"> produced unexpected regional class labels.'</span>
+</span><span id="regional_predictions_to_image_labels-64"><a href="#regional_predictions_to_image_labels-64"><span class="linenos">64</span></a>    <span class="p">)</span>
+</span><span id="regional_predictions_to_image_labels-65"><a href="#regional_predictions_to_image_labels-65"><span class="linenos">65</span></a>
+</span><span id="regional_predictions_to_image_labels-66"><a href="#regional_predictions_to_image_labels-66"><span class="linenos">66</span></a>    <span class="c1"># Attach the predicted patch classes to their originating image IDs.</span>
+</span><span id="regional_predictions_to_image_labels-67"><a href="#regional_predictions_to_image_labels-67"><span class="linenos">67</span></a>    <span class="n">patch_results</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+</span><span id="regional_predictions_to_image_labels-68"><a href="#regional_predictions_to_image_labels-68"><span class="linenos">68</span></a>        <span class="s1">'image_id'</span><span class="p">:</span> <span class="n">region_features_df</span><span class="p">[</span><span class="s1">'image_id'</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(),</span>
+</span><span id="regional_predictions_to_image_labels-69"><a href="#regional_predictions_to_image_labels-69"><span class="linenos">69</span></a>        <span class="s1">'predicted_defect'</span><span class="p">:</span> <span class="n">patch_predictions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span>
+</span><span id="regional_predictions_to_image_labels-70"><a href="#regional_predictions_to_image_labels-70"><span class="linenos">70</span></a>    <span class="p">})</span>
+</span><span id="regional_predictions_to_image_labels-71"><a href="#regional_predictions_to_image_labels-71"><span class="linenos">71</span></a>
+</span><span id="regional_predictions_to_image_labels-72"><a href="#regional_predictions_to_image_labels-72"><span class="linenos">72</span></a>    <span class="c1"># Count only predicted defects, never actual COCO defects.</span>
+</span><span id="regional_predictions_to_image_labels-73"><a href="#regional_predictions_to_image_labels-73"><span class="linenos">73</span></a>    <span class="n">image_counts</span> <span class="o">=</span> <span class="n">patch_results</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="s1">'image_id'</span><span class="p">)[</span><span class="s1">'predicted_defect'</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+</span><span id="regional_predictions_to_image_labels-74"><a href="#regional_predictions_to_image_labels-74"><span class="linenos">74</span></a>
+</span><span id="regional_predictions_to_image_labels-75"><a href="#regional_predictions_to_image_labels-75"><span class="linenos">75</span></a>    <span class="c1"># Match the test-image order using image IDs rather than sorting filenames.</span>
+</span><span id="regional_predictions_to_image_labels-76"><a href="#regional_predictions_to_image_labels-76"><span class="linenos">76</span></a>    <span class="n">aligned_counts</span> <span class="o">=</span> <span class="n">image_counts</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">predictions_df</span><span class="p">[</span><span class="s1">'image_id'</span><span class="p">])</span>
+</span><span id="regional_predictions_to_image_labels-77"><a href="#regional_predictions_to_image_labels-77"><span class="linenos">77</span></a>    <span class="k">assert</span> <span class="n">aligned_counts</span><span class="o">.</span><span class="n">notna</span><span class="p">()</span><span class="o">.</span><span class="n">all</span><span class="p">(),</span> <span class="sa">f</span><span class="s1">'Missing patch counts for </span><span class="si">{</span><span class="n">model_name</span><span class="si">}</span><span class="s1">.'</span>
+</span><span id="regional_predictions_to_image_labels-78"><a href="#regional_predictions_to_image_labels-78"><span class="linenos">78</span></a>    <span class="n">counts</span> <span class="o">=</span> <span class="n">aligned_counts</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+</span><span id="regional_predictions_to_image_labels-79"><a href="#regional_predictions_to_image_labels-79"><span class="linenos">79</span></a>
+</span><span id="regional_predictions_to_image_labels-80"><a href="#regional_predictions_to_image_labels-80"><span class="linenos">80</span></a>    <span class="c1"># An image fails only if predicted defective regions STRICTLY EXCEED the threshold.</span>
+</span><span id="regional_predictions_to_image_labels-81"><a href="#regional_predictions_to_image_labels-81"><span class="linenos">81</span></a>    <span class="n">predicted_labels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">counts</span> <span class="o">&gt;</span> <span class="n">max_defects</span><span class="p">,</span> <span class="s1">'FAIL'</span><span class="p">,</span> <span class="s1">'PASS'</span><span class="p">)</span>
+</span><span id="regional_predictions_to_image_labels-82"><a href="#regional_predictions_to_image_labels-82"><span class="linenos">82</span></a>    <span class="n">elapsed</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span>
+</span><span id="regional_predictions_to_image_labels-83"><a href="#regional_predictions_to_image_labels-83"><span class="linenos">83</span></a>    <span class="k">return</span> <span class="n">predicted_labels</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">elapsed</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>Predict patches and aggregate defect counts in the requested image order.</p>
+            <div class="docstring"><p>Predict patch classes and aggregate counts in the requested image order.</p>
 
 <h2 id="parameters">Parameters</h2>
 
-<p>region_model : estimator
-    Fitted estimator exposing predict with binary patch labels.
-max_defects : int
-    Images fail when the predicted defect count exceeds this threshold.
-model_name : str
-    Model description used in validation messages.
-X_region_test : array-like
-    Patch features in the same row order as region_features_df.
-region_features_df : pandas.DataFrame
-    Patch records containing an image_id column.
-predictions_df : pandas.DataFrame
-    Image records whose image_id column defines the output order.</p>
+<ul>
+<li><strong>region_model</strong> (<code>estimator</code>):
+Fitted estimator whose <code>predict</code> method returns one binary class
+per patch: 0 for normal and 1 for defective.</li>
+<li><strong>max_defects</strong> (<code>int</code>):
+Maximum allowable number of predicted defective patches. An image
+is FAIL only when its count is strictly greater than this value;
+equality remains PASS. Callers should supply a non-negative integer.</li>
+<li><strong>model_name</strong> (<code>str</code>):
+Model description included in assertion messages.</li>
+<li><strong>X_region_test</strong> (<code>array-like of shape (n_patches, n_features)</code>):
+Patch predictors in the same row order as <code>region_features_df</code>.</li>
+<li><strong>region_features_df</strong> (<code>pandas.DataFrame</code>):
+One row per patch, including an <code>image_id</code> column identifying
+the source image. Row order must match <code>X_region_test</code>.</li>
+<li><strong>predictions_df</strong> (<code>pandas.DataFrame</code>):
+Image records containing an <code>image_id</code> column. This column
+determines the order of both returned arrays.</li>
+</ul>
 
 <h2 id="returns">Returns</h2>
 
-<p>tuple
-    PASS/FAIL label array, defect count array and elapsed seconds.</p>
+<ul>
+<li><strong>predicted_labels</strong> (<code>numpy.ndarray of str</code>):
+One PASS or FAIL label per row of <code>predictions_df</code>.</li>
+<li><strong>counts</strong> (<code>numpy.ndarray of int</code>):
+Predicted defective-patch counts in the same image order.</li>
+<li><strong>elapsed</strong> (<code>float</code>):
+Elapsed prediction and aggregation time in seconds. Excludes
+image loading and feature extraction performed before this call.</li>
+</ul>
+
+<h2 id="raises">Raises</h2>
+
+<ul>
+<li><strong>AssertionError</strong>:
+If prediction and patch-row counts differ, predicted classes are
+not binary, or a requested image has no aggregated patch count.
+These checks are inactive when Python assertions are disabled.</li>
+<li><strong>KeyError</strong>:
+If either dataframe lacks the required <code>image_id</code> column.</li>
+</ul>
+
+<h2 id="notes">Notes</h2>
+
+<p>Counts use predicted patch classes, never ground-truth defect labels.
+Estimator errors propagate to the caller. Inputs must contain one scalar
+prediction per patch; patch-count thresholds depend on patch size and
+image resolution.</p>
 </div>
 
 

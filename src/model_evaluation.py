@@ -1,5 +1,7 @@
 """Model prediction aggregation and image-level evaluation helpers."""
 
+__docformat__ = "markdown"
+
 import time
 
 import numpy as np
@@ -7,27 +9,49 @@ import pandas as pd
 
 
 def regional_predictions_to_image_labels(region_model, max_defects, model_name, X_region_test, region_features_df, predictions_df):
-    """Predict patches and aggregate defect counts in the requested image order.
+    """Predict patch classes and aggregate counts in the requested image order.
 
-    Parameters
-    ----------
-    region_model : estimator
-        Fitted estimator exposing predict with binary patch labels.
-    max_defects : int
-        Images fail when the predicted defect count exceeds this threshold.
-    model_name : str
-        Model description used in validation messages.
-    X_region_test : array-like
-        Patch features in the same row order as region_features_df.
-    region_features_df : pandas.DataFrame
-        Patch records containing an image_id column.
-    predictions_df : pandas.DataFrame
-        Image records whose image_id column defines the output order.
+    ## Parameters
+    - **region_model** (`estimator`):
+        Fitted estimator whose ``predict`` method returns one binary class
+        per patch: 0 for normal and 1 for defective.
+    - **max_defects** (`int`):
+        Maximum allowable number of predicted defective patches. An image
+        is FAIL only when its count is strictly greater than this value;
+        equality remains PASS. Callers should supply a non-negative integer.
+    - **model_name** (`str`):
+        Model description included in assertion messages.
+    - **X_region_test** (`array-like of shape (n_patches, n_features)`):
+        Patch predictors in the same row order as ``region_features_df``.
+    - **region_features_df** (`pandas.DataFrame`):
+        One row per patch, including an ``image_id`` column identifying
+        the source image. Row order must match ``X_region_test``.
+    - **predictions_df** (`pandas.DataFrame`):
+        Image records containing an ``image_id`` column. This column
+        determines the order of both returned arrays.
 
-    Returns
-    -------
-    tuple
-        PASS/FAIL label array, defect count array and elapsed seconds.
+    ## Returns
+    - **predicted_labels** (`numpy.ndarray of str`):
+        One PASS or FAIL label per row of ``predictions_df``.
+    - **counts** (`numpy.ndarray of int`):
+        Predicted defective-patch counts in the same image order.
+    - **elapsed** (`float`):
+        Elapsed prediction and aggregation time in seconds. Excludes
+        image loading and feature extraction performed before this call.
+
+    ## Raises
+    - **AssertionError**:
+        If prediction and patch-row counts differ, predicted classes are
+        not binary, or a requested image has no aggregated patch count.
+        These checks are inactive when Python assertions are disabled.
+    - **KeyError**:
+        If either dataframe lacks the required ``image_id`` column.
+
+    ## Notes
+    Counts use predicted patch classes, never ground-truth defect labels.
+    Estimator errors propagate to the caller. Inputs must contain one scalar
+    prediction per patch; patch-count thresholds depend on patch size and
+    image resolution.
     """
     start = time.perf_counter()
 
