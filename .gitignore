@@ -35,3 +35,11 @@ data/duplicate_backups/
 # Reproducible cleaned dataset copy and Python test caches
 data/cleaned/
 .pytest_cache/
+
+# Dataset metadata and generated feature/evaluation tables
+data/raw/README.dataset.txt
+data/raw/README.roboflow.txt
+data/processed/final_test_error_audit.csv
+data/processed/final_test_image_predictions.csv
+data/processed/final_test_model_comparison.csv
+data/processed/train_features.csv
