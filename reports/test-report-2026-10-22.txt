@@ -1,0 +1,17 @@
+test_apply_preserves_every_source_byte_and_records_the_copy (test_dataset_preparation.DatasetPreparationTests.test_apply_preserves_every_source_byte_and_records_the_copy) ... ok
+test_conflicting_annotations_stop_before_output_creation (test_dataset_preparation.DatasetPreparationTests.test_conflicting_annotations_stop_before_output_creation) ... ok
+test_cross_split_duplicates_stop_before_output_creation (test_dataset_preparation.DatasetPreparationTests.test_cross_split_duplicates_stop_before_output_creation) ... ok
+test_existing_output_is_never_overwritten (test_dataset_preparation.DatasetPreparationTests.test_existing_output_is_never_overwritten) ... ok
+test_output_cannot_overlap_source (test_dataset_preparation.DatasetPreparationTests.test_output_cannot_overlap_source) ... ok
+test_preview_is_read_only_and_keeps_lexicographically_first_copy (test_dataset_preparation.DatasetPreparationTests.test_preview_is_read_only_and_keeps_lexicographically_first_copy) ... ok
+test_different_patch_defaults_are_preserved (test_src_functions.SourceFunctionTests.test_different_patch_defaults_are_preserved) ... ok
+test_file_hash (test_src_functions.SourceFunctionTests.test_file_hash) ... ok
+test_overlap_and_label_return_contracts (test_src_functions.SourceFunctionTests.test_overlap_and_label_return_contracts) ... ok
+test_patch_boundaries_and_order (test_src_functions.SourceFunctionTests.test_patch_boundaries_and_order) ... ok
+test_regional_predictions_align_image_ids_and_strict_threshold (test_src_functions.SourceFunctionTests.test_regional_predictions_align_image_ids_and_strict_threshold) ... ok
+test_rgb_feature_names_and_values (test_src_functions.SourceFunctionTests.test_rgb_feature_names_and_values) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 0.192s
+
+OK

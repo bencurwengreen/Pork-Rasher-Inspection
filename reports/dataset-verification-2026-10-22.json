@@ -1,0 +1,25 @@
+{
+  "verified_utc": "2026-10-22T02:51:34.115677+00:00",
+  "splits": {
+    "train": {
+      "images": 3347,
+      "image_hashes_verified_against_source": 3347,
+      "additional_duplicates_excluded": 0,
+      "annotation_records_unchanged": true
+    },
+    "valid": {
+      "images": 120,
+      "image_hashes_verified_against_source": 120,
+      "additional_duplicates_excluded": 0,
+      "annotation_records_unchanged": true
+    },
+    "test": {
+      "images": 80,
+      "image_hashes_verified_against_source": 80,
+      "additional_duplicates_excluded": 0,
+      "annotation_records_unchanged": true
+    }
+  },
+  "raw_files_unchanged": true,
+  "method": "All copied and raw image SHA-256 values match the pre-copy plan; all split COCO contents are logically identical to source. Preparation also checked raw annotation and attribution byte hashes before/after."
+}

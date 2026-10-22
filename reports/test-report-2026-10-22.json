@@ -1,0 +1,27 @@
+{
+  "report_date_sydney": "2026-10-22",
+  "started_utc": "2026-10-22T02:49:12.351794+00:00",
+  "finished_utc": "2026-10-22T02:49:12.544335+00:00",
+  "duration_seconds": 0.192541,
+  "python": "3.14.7 (tags/v3.14.7:823f032, Aug  5 2026, 10:51:32) [MSC v.1944 64 bit (AMD64)]",
+  "interpreter": "C:\\Users\\bengr\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "packages": {
+    "numpy": "2.5.3",
+    "pandas": "3.0.6",
+    "Pillow": "12.3.0",
+    "matplotlib": "3.11.2",
+    "scikit-learn": "1.9.1",
+    "opencv-python": "5.0.0.93",
+    "joblib": "1.6.0",
+    "Jinja2": "3.1.6",
+    "ipython": "9.17.1",
+    "ipykernel": "7.3.0"
+  },
+  "tests_run": 12,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "successful": true,
+  "scope": "Unit tests only; no clean installation, notebook execution, model training or test-set evaluation."
+}
