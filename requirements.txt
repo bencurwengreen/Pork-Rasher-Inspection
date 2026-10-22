@@ -1,12 +1,29 @@
 # Runtime dependencies used by notebooks 00-13.
+# Data manipulation
 numpy
 pandas
-pillow
-matplotlib
-# MLPClassifier.fit(sample_weight=...) was introduced in 1.7.
-scikit-learn>=1.7
+
+# Image processing
+Pillow
 opencv-python
+
+# Machine learning
+scikit-learn
 joblib
-Jinja2
-ipython
+
+# Visualisation
+matplotlib
+seaborn
+
+# Jupyter notebooks
+jupyter
 ipykernel
+ipython
+nbformat
+
+# Testing
+pytest
+
+# HTML documentation and templating
+pdoc
+Jinja2
