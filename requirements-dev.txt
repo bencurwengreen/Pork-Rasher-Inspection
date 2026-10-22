@@ -1,0 +1,5 @@
+# Optional test and HTML documentation tooling.
+-r requirements.txt
+pytest
+pytest-html
+pdoc>=16

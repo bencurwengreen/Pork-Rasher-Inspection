@@ -31,3 +31,7 @@ data/processed/region_features.csv
 
 #Exclude duplicates
 data/duplicate_backups/
+
+# Reproducible cleaned dataset copy and Python test caches
+data/cleaned/
+.pytest_cache/
