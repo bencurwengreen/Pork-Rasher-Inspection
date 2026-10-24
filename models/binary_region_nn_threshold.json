@@ -1,5 +1,5 @@
 {
-    "max_defects": 7,
+    "max_defects": 12,
     "patch_size": 32,
     "selection_metric": "balanced_accuracy",
     "selection_dataset": "training",
