@@ -83,7 +83,7 @@ New-Item -ItemType Directory -Force data/processed, models | Out-Null
 
 ## Notebook execution
 
-Dependencies are installed through the terminal setup above; Notebook 00 no longer installs packages or changes dataset files. Run the notebooks individually in numerical order, selecting **Restart Kernel and Run All** for each. Saved feature tables and models carry results between notebooks.
+Dependencies are installed through the terminal setup above; Run the notebooks individually in numerical order, selecting **Run All** for each. Saved feature tables and models carry results between notebooks.
 
 Set the kernel working directory to the project's **`notebooks/` folder**. Check it in a notebook with `from pathlib import Path; print(Path.cwd())`. If it is the repository root, run `%cd notebooks` before the notebook's other cells; after restarting the kernel, check again. Relative paths such as `../data/cleaned/train` and `../models` depend on this location.
 
